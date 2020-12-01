@@ -10,6 +10,7 @@ def compute(s: str) -> int:
     return 0
 
 
+@pytest.mark.template
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (

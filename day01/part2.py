@@ -16,6 +16,7 @@ def compute(s: str) -> int:
             return search * prev * nex
 
 
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (

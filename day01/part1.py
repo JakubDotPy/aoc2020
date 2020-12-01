@@ -12,6 +12,7 @@ def compute(s: str) -> int:
             return num * (2020 - num)
 
 
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
