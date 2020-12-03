@@ -1,9 +1,9 @@
 import argparse
+from collections import Counter
 
 import pytest
 
 from support.support import timing
-from collections import Counter
 
 
 def compute(s: str) -> int:
@@ -18,11 +18,18 @@ def compute(s: str) -> int:
     return count
 
 
+INPUT_S = """
+1-3 a: abcde
+1-3 b: cdefg
+2-9 c: ccccccccc
+"""
+
+
 @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
-            (f"1-3 a: abcde\n1-3 b: cdefg\n2-9 c: ccccccccc", 2),
+            (INPUT_S, 2),
             ),
     )
 def test(input_s: str, expected: int) -> None:

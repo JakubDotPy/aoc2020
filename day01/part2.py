@@ -16,15 +16,21 @@ def compute(s: str) -> int:
             return search * prev * nex
 
 
+INPUT_S = """\
+1721
+979
+366
+299
+675
+1456
+"""
+
+
 @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
-            ("""979
-            366
-            675
-            299
-            1456""", 241861950),
+            (INPUT_S, 241861950),
             ),
     )
 def test(input_s: str, expected: int) -> None:

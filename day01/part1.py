@@ -11,17 +11,20 @@ def compute(s: str) -> int:
         if 2020 - num in nums:
             return num * (2020 - num)
 
+INPUT_S = """\
+1721
+979
+366
+299
+675
+1456
+"""
 
 @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
-        ("""1721
-979
-366
-299
-675
-1456""", 514579),
+            (INPUT_S, 514579),
     ),
 )
 def test(input_s: str, expected: int) -> None:
