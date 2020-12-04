@@ -60,14 +60,15 @@ def validate_passport(passport):
     if not validate_fields(passport):
         return False
     else:
-        condition = \
-            validate_year(passport['byr'], 1920, 2002) \
-            and validate_year(passport['iyr'], 2010, 2020) \
-            and validate_year(passport['eyr'], 2020, 2030) \
-            and validate_height(passport['hgt']) \
-            and validate_hcl(passport['hcl']) \
-            and validate_ecl(passport['ecl']) \
-            and validate_pid(passport['pid'])
+        condition = all((
+            validate_year(passport['byr'], 1920, 2002),
+            validate_year(passport['iyr'], 2010, 2020),
+            validate_year(passport['eyr'], 2020, 2030),
+            validate_height(passport['hgt']),
+            validate_hcl(passport['hcl']),
+            validate_ecl(passport['ecl']),
+            validate_pid(passport['pid']),
+            ))
 
         return condition
 
@@ -106,6 +107,7 @@ iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719
 """
 
 
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
