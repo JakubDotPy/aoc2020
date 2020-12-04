@@ -21,7 +21,7 @@ cid (Country ID)   - optional
 
 
 def compute(s: str) -> int:
-    passports = [dict(param.split(':') for param in passport.split()) for passport in s.split('\n\n')]
+    passports = (dict(param.split(':') for param in passport.split()) for passport in s.split('\n\n'))
     required = {'byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid', }  # 'cid' Country ID is optional for now
     return sum(required.issubset(set(passport.keys())) for passport in passports)
 
