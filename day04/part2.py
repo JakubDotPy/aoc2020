@@ -52,7 +52,7 @@ def validate_ecl(ecl):
 
 
 def validate_pid(pid):
-    pattern = re.compile(r'\d{9}')
+    pattern = re.compile(r'^\d{9}$')
     return bool(re.match(pattern, pid))
 
 
