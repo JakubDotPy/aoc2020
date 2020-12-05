@@ -1,4 +1,5 @@
 import argparse
+from itertools import tee
 from math import ceil
 
 import pytest
@@ -45,11 +46,15 @@ def compute_id(seat) -> int:
 
 
 def compute(s: str) -> int:
-    ids = [compute_id(compute_seat(coords)) for coords in s.splitlines()]
-    return max(ids)
+    ids = sorted(compute_id(compute_seat(coords)) for coords in s.splitlines())
+    first, second = tee(ids)
+    next(second, None)
+    for a, b in zip(first, second):
+        if b != a + 1:
+            return a + 1
 
 
-@pytest.mark.solved
+@pytest.mark.skip
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
