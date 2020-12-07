@@ -8,15 +8,13 @@ import pytest
 from support.support import timing
 
 INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
-INPUT_STR = """light red bags contain 1 bright white bag, 2 muted yellow bags.
-dark orange bags contain 3 bright white bags, 4 muted yellow bags.
-bright white bags contain 1 shiny gold bag.
-muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
-shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.
-dark olive bags contain 3 faded blue bags, 4 dotted black bags.
-vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
-faded blue bags contain no other bags.
-dotted black bags contain no other bags."""
+INPUT_STR = """shiny gold bags contain 2 dark red bags.
+dark red bags contain 2 dark orange bags.
+dark orange bags contain 2 dark yellow bags.
+dark yellow bags contain 2 dark green bags.
+dark green bags contain 2 dark blue bags.
+dark blue bags contain 2 dark violet bags.
+dark violet bags contain no other bags."""
 
 PARENT_re = re.compile(r'^(?P<parent>\w+ \w+)(?P<rest>.*)')
 BAG_re = re.compile(r'(\d+) (\w+ \w+)')
@@ -28,33 +26,33 @@ def parse_bags(s):
         match = PARENT_re.match(line)
         parent = match['parent']
         children = [(int(num), color) for num, color in BAG_re.findall(match['rest'])]
-        for count, color in children:
-            structure[color].append(parent)
+        structure[parent] = children
     return structure
 
 
 def compute(s: str) -> int:
-    target = 'shiny gold'
+    target = (1, 'shiny gold')
     structure = parse_bags(s)
 
-    paths_to_target = set()
-    pool = structure[target]
+    total = 0
+    pool = [target]
 
     # traverse
     while pool:
-        color = pool.pop()
-        if color not in paths_to_target:
-            paths_to_target.add(color)
-            pool.extend(structure[color])
+        n, color = pool.pop()
+        total += n  # count
+        for n_i, color_i in structure[color]:
+            # extend pool with multiply
+            pool.append((n * n_i, color_i))
 
-    return len(paths_to_target)
+    return total - 1  # minus ours
 
 
 @pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
-            (INPUT_STR, 4),
+            (INPUT_STR, 126),
             ),
     )
 def test(input_s: str, expected: int) -> None:
