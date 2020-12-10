@@ -29,24 +29,19 @@ INPUT_S = """\
 576
 """
 
-INVALID_NUMBER = 258585477
 
-
-# INVALID_NUMBER = 127
-
-
-def compute(s: str) -> int:
+def compute(s: str, invalid_number=258585477) -> int:
     nums = [int(n) for n in s.splitlines()]
 
     for i, num in enumerate(nums):
         sequence = set()
         partial_sum = 0
         shift = 0
-        while partial_sum < INVALID_NUMBER:
+        while partial_sum < invalid_number:
             partial_sum += nums[i + shift]
             sequence.add(nums[i + shift])
             shift += 1
-        if partial_sum == INVALID_NUMBER:
+        if partial_sum == invalid_number:
             return min(sequence) + max(sequence)
 
 
@@ -58,7 +53,7 @@ def compute(s: str) -> int:
             ),
     )
 def test(input_s: str, expected: int) -> None:
-    assert compute(input_s) == expected
+    assert compute(input_s, invalid_number=127) == expected
 
 
 def main() -> int:

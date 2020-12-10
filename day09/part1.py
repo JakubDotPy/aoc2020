@@ -30,9 +30,8 @@ INPUT_S = """\
 """
 
 
-def compute(s: str) -> int:
+def compute(s: str, preamble_len=25) -> int:
     nums = [int(n) for n in s.splitlines()]
-    preamble_len = 25
 
     for i, num in enumerate(nums):
         if i < preamble_len:
@@ -56,7 +55,7 @@ def compute(s: str) -> int:
             ),
     )
 def test(input_s: str, expected: int) -> None:
-    assert compute(input_s) == expected
+    assert compute(input_s, preamble_len=5) == expected
 
 
 def main() -> int:
