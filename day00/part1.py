@@ -6,6 +6,8 @@ import pytest
 from support.support import timing
 
 INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
+INPUT_S = """\
+"""
 
 
 def compute(s: str) -> int:
@@ -17,7 +19,7 @@ def compute(s: str) -> int:
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
-        (1, 0),
+            (INPUT_S, 0),
     ),
 )
 def test(input_s: str, expected: int) -> None:
