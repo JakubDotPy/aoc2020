@@ -12,8 +12,8 @@ INPUT_S = """\
 ..#
 ###"""
 
-
 GRID = dict()
+
 active_cubes = set()
 inactive_cubes = set()
 
@@ -35,21 +35,13 @@ def analyze_grid():
             inactive_cubes.add(cube)
 
 
-cubes_around = set(product((-1, 0, 1), repeat=3)) - {(0, 0, 0)}
+moves_around = set(product((-1, 0, 1), repeat=3)) - {(0, 0, 0)}
 
 
 def active_around(cube) -> int:
     """counts active cubes around (3D) selected"""
     x, y, z = cube
-
-    around = 0
-    for s_x, s_y, s_z in cubes_around:
-        check = x + s_x, y + s_y, z + s_z
-        if check in active_cubes:
-            around += 1
-
-    # TODO: return sum((x + mov[0], y + mov[1]) in active_cubes for mov in cubes_around)
-    return around
+    return sum((x + mov[0], y + mov[1], z + mov[2]) in active_cubes for mov in moves_around)
 
 
 def apply_rules(cube):
@@ -63,15 +55,17 @@ def apply_rules(cube):
     """
     global to_activate, to_deactivate
 
-    if cube in inactive_cubes and active_around(cube) in (2, 3):
-        to_activate.add(cube)
-    else:
-        to_deactivate.add(cube)
+    if cube in active_cubes:
+        if active_around(cube) in (2, 3):
+            to_activate.add(cube)
+        else:
+            to_deactivate.add(cube)
 
-    if cube in inactive_cubes and active_around(cube) == 3:
-        to_activate.add(cube)
-    else:
-        to_deactivate.add(cube)
+    if cube in inactive_cubes:
+        if active_around(cube) == 3:
+            to_activate.add(cube)
+        else:
+            to_deactivate.add(cube)
 
 
 def apply_cubes():
@@ -81,15 +75,17 @@ def apply_cubes():
         GRID[cube] = '.'
 
 
-def pprint_grid(width, length):
+def pprint_grid():
     global GRID
 
-    layers = sorted(list(set(cube[2] for cube in GRID)))
+    width = sorted(list(set(cube[0] for cube in GRID)))
+    height = sorted(list(set(cube[1] for cube in GRID)))
+    depth = sorted(list(set(cube[2] for cube in GRID)))
 
-    for z in layers:
+    for z in depth:
         print(f' layer {z} '.center(20, '-'))
-        for y in range(length + 1):
-            for x in range(width + 1):
+        for y in height:
+            for x in width:
                 print(GRID[(x, y, z)], end='')
             print()
     print('=' * 20)
@@ -97,22 +93,39 @@ def pprint_grid(width, length):
 
 def load_grid(s):
     global GRID
+
     for y, line in enumerate(s.splitlines()):
         for x, char in enumerate(line):
             GRID[(x, y, 0)] = char  # z coordinate is 0 in the beginning
-    return x, y
+
+
+def expand_grid():
+    """expands grid to all directions by one"""
+    global GRID
+
+    expanded_grid = GRID.copy()
+
+    for x, y, z in GRID.keys():
+        for m_x, m_y, m_z in moves_around:
+            new_cube = x + m_x, y + m_y, z + m_z
+            if new_cube not in GRID:
+                expanded_grid[new_cube] = '.'
+
+    GRID = expanded_grid
 
 
 def compute(s: str) -> int:
     global to_activate, to_deactivate
-    grid_width, grid_length = load_grid(s)
+
+    load_grid(s)
 
     # THE LOOP
     for cycle in count(start=1):
-        print(f' cycle {cycle} '.center(30, '#'))
-        pprint_grid(grid_width, grid_length)
+        # print(f' cycle {cycle} '.center(30, '#'))
+        # pprint_grid()
 
-        analyze_grid()
+        expand_grid()
+        analyze_grid()  # sets active_cubes and inactive_cubes
 
         to_activate = set()
         to_deactivate = set()
@@ -120,13 +133,11 @@ def compute(s: str) -> int:
         for cube in GRID:
             apply_rules(cube)
 
-        assert len(to_activate) + len(to_deactivate) == len(GRID)
-
         if to_activate or to_deactivate:
             apply_cubes()
 
         # stop condition
-        if cycle == 3:
+        if cycle == 7:
             return len(active_cubes)
 
 
@@ -134,8 +145,8 @@ def compute(s: str) -> int:
     ('input_s', 'expected'),
     (
             (INPUT_S, 112),
-    ),
-)
+            ),
+    )
 def test(input_s: str, expected: int) -> None:
     assert compute(input_s) == expected
 
