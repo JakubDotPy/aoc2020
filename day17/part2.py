@@ -35,13 +35,13 @@ def analyze_grid():
             inactive_cubes.add(cube)
 
 
-moves_around = set(product((-1, 0, 1), repeat=3)) - {(0, 0, 0)}
+moves_around = set(product((-1, 0, 1), repeat=4)) - {(0, 0, 0, 0)}
 
 
 def active_around(cube) -> int:
     """counts active cubes around (3D) selected"""
-    x, y, z = cube
-    return sum((x + mov[0], y + mov[1], z + mov[2]) in active_cubes for mov in moves_around)
+    x, y, z, w = cube
+    return sum((x + mov[0], y + mov[1], z + mov[2], w + mov[3]) in active_cubes for mov in moves_around)
 
 
 def apply_rules(cube):
@@ -76,6 +76,7 @@ def apply_cubes():
 
 
 def pprint_grid():
+    """hehehe... 4D... I think not.."""
     global GRID
 
     width = sorted(list(set(cube[0] for cube in GRID)))
@@ -96,7 +97,7 @@ def load_grid(s):
 
     for y, line in enumerate(s.splitlines()):
         for x, char in enumerate(line):
-            GRID[(x, y, 0)] = char  # z coordinate is 0 in the beginning
+            GRID[(x, y, 0, 0)] = char  # z and w coordinates are 0 in the beginning
 
 
 def expand_grid():
@@ -105,9 +106,9 @@ def expand_grid():
 
     expanded_grid = GRID.copy()
 
-    for x, y, z in GRID.keys():
-        for m_x, m_y, m_z in moves_around:
-            new_cube = x + m_x, y + m_y, z + m_z
+    for x, y, z, w in GRID.keys():
+        for m_x, m_y, m_z, m_w in moves_around:
+            new_cube = x + m_x, y + m_y, z + m_z, w + m_w
             if new_cube not in GRID:
                 expanded_grid[new_cube] = '.'
 
@@ -145,7 +146,7 @@ def compute(s: str) -> int:
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
-            (INPUT_S, 112),
+            (INPUT_S, 848),
             ),
     )
 def test(input_s: str, expected: int) -> None:
