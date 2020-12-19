@@ -43,9 +43,9 @@ def parse(s):
                 if part == '|':
                     part = part
                 else:
-                    part = f'({part.strip()})'
+                    part = part.strip()
                 parts.append(part)
-            rules[int(rule_id_s)] = ''.join(parts)
+            rules[int(rule_id_s)] = f"({''.join(parts)})"
 
     messages = messages_s.splitlines()
 
@@ -58,15 +58,11 @@ def compute(s: str) -> int:
     # replace with the letters I know
     # while there are numbers in rule 0, continue with replacing
     while re.search(r'\d+', rules[0]):
-        for id, rule in rules.items():
-            if rule in 'ab': break
-            for n in re.findall(r'\d+', rule):
-                rule = re.sub(n, f'({rules[int(n)]})', rule)
-            rules[id] = rule
-
-            # check end condition
-            if not re.search(r'\d+', rules[0]):
-                break
+        r_0 = rules[0]
+        for n in set(re.findall(r'\d+', r_0)):
+            r_0 = re.sub(n, rules[int(n)], r_0)
+        r_0 = re.sub(r'\((\w+)\)', r'\1', r_0)
+        rules[0] = r_0
 
     # clean regex
     the_regex = re.sub(' ', '', rules[0])
