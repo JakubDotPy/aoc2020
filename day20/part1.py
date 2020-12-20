@@ -119,9 +119,11 @@ Tile 3079:
 
 
 class Tile:
+
     def __init__(self, tile_id, matrix):
         self.tile_id = tile_id
         self.matrix = np.array(matrix)
+        self.pos_in_picture = np.array([0, 0])
 
     @property
     def top(self):
@@ -148,11 +150,23 @@ class Tile:
     def flip_ud(self):
         self.matrix = np.flipud(self.matrix)
 
+    def match(self, other):
+        sides = {
+            'top'   : np.array_equal(self.top, other.bottom),
+            'bottom': np.array_equal(self.bottom, other.top),
+            'left'  : np.array_equal(self.left, other.right),
+            'right' : np.array_equal(self.right, other.left),
+            }
+        return [side for side, result in sides.items() if result]
+
+    def print(self):
+        return '\n'.join(''.join(row) for row in self.matrix)
+
     def __repr__(self):
         return f'Tile {self.tile_id}'
 
     def __str__(self):
-        return '\n'.join(''.join(row) for row in self.matrix)
+        return f'Tile {self.tile_id}'
 
 
 def parse(s):
@@ -167,6 +181,16 @@ def parse(s):
 
 def compute(s: str) -> int:
     tiles = parse(s)
+
+    grid_size = int(np.math.sqrt(len(tiles)))
+    grid = [[None for _ in range(grid_size)] for _ in range(grid_size)]
+
+    test_tile = tiles.pop(0)
+    x, y = test_tile.pos_in_picture
+    grid[x][y] = test_tile
+
+    matches = [(test_tile.match(tile), tile.tile_id) for tile in tiles]
+
     return 0
 
 
