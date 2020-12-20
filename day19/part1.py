@@ -1,7 +1,6 @@
 import argparse
 import os.path
 import re
-from collections import defaultdict
 
 import pytest
 
@@ -24,28 +23,13 @@ aaaabbb"""
 
 
 def parse(s):
-    rules = defaultdict(list)
+    rules = dict()
     rules_s, messages_s = s.split('\n\n')
 
     # parse rules
     for rule in rules_s.splitlines():
-        rule_id_s, conditions = [i.strip() for i in rule.split(':')]
-
-        # get the "a" "b"
-        if conditions[1] in 'ab':
-            rules[int(rule_id_s)] = conditions[1]
-            continue
-        else:
-            parts = []
-            for part in conditions.partition('|'):
-                if not part:
-                    break
-                if part == '|':
-                    part = part
-                else:
-                    part = part.strip()
-                parts.append(part)
-            rules[int(rule_id_s)] = f"({''.join(parts)})"
+        id_s, _, rule_s = rule.partition(': ')
+        rules[id_s] = rule_s
 
     messages = messages_s.splitlines()
 
@@ -55,26 +39,21 @@ def parse(s):
 def compute(s: str) -> int:
     rules, messages = parse(s)
 
-    # replace with the letters I know
-    # while there are numbers in rule 0, continue with replacing
-    while re.search(r'\d+', rules[0]):
-        r_0 = rules[0]
-        for n in set(re.findall(r'\d+', r_0)):
-            r_0 = re.sub(n, rules[int(n)], r_0)
-        r_0 = re.sub(r'\((\w+)\)', r'\1', r_0)
-        rules[0] = r_0
+    def part_re(id_s):
+        """recursive"""
+        if id_s == '|': return '|'
 
-    # clean regex
-    the_regex = re.sub(' ', '', rules[0])
-    while re.search(r'\(\w+\)', the_regex):
-        the_regex = re.sub(' ', '', the_regex)
-        the_regex = re.sub(r'\((\w+)\)', r'\1', the_regex)
+        rule_s = rules[id_s]
+        if rule_s.startswith('"'):
+            return rule_s[1]
+        else:
+            return f"({''.join(part_re(p_id_s) for p_id_s in rule_s.split())})"
 
-    counts = sum(bool(re.fullmatch(the_regex, message)) for message in messages)
-
-    return counts
+    pattern = re.compile(part_re('0'))
+    return sum(bool(re.fullmatch(pattern, message)) for message in messages)
 
 
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
