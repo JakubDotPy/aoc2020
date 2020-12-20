@@ -1,5 +1,7 @@
 import argparse
 import os.path
+from functools import reduce
+from operator import mul
 
 import numpy as np
 import pytest
@@ -125,6 +127,8 @@ class Tile:
         self.matrix = np.array(matrix)
         self.pos_in_picture = np.array([0, 0])
 
+        self.possible_edges = self._get_possible_edges()
+
     @property
     def top(self):
         return self.matrix[0]
@@ -149,6 +153,19 @@ class Tile:
 
     def flip_ud(self):
         self.matrix = np.flipud(self.matrix)
+
+    def _get_possible_edges(self):
+        nd_edges = [
+            self.top, self.top[::-1],
+            self.bottom, self.bottom[::-1],
+            self.left, self.left[::-1],
+            self.right, self.right[::-1],
+            ]
+
+        # convert to set of strings
+        edges = set([''.join(edge) for edge in nd_edges])
+
+        return edges
 
     def match(self, other):
         sides = {
@@ -182,18 +199,25 @@ def parse(s):
 def compute(s: str) -> int:
     tiles = parse(s)
 
-    grid_size = int(np.math.sqrt(len(tiles)))
-    grid = [[None for _ in range(grid_size)] for _ in range(grid_size)]
+    # corners match only on two sides!!
+    corners = []
 
-    test_tile = tiles.pop(0)
-    x, y = test_tile.pos_in_picture
-    grid[x][y] = test_tile
+    # generate combinations
+    for i, this_tile in enumerate(tiles):
+        this_tile_edges = set(this_tile.possible_edges)
+        for j, other_tile in enumerate(tiles):
+            if i == j: continue  # same tile
+            for edge in tuple(this_tile_edges):
+                if edge in other_tile.possible_edges:
+                    print(f'{this_tile.tile_id} {other_tile.tile_id}')
+                    this_tile_edges.discard(edge)
+        if len(this_tile_edges) == 4:  # removing two times (both may be flipped) remaining edges must be 2*2
+            corners.append(this_tile.tile_id)
 
-    matches = [(test_tile.match(tile), tile.tile_id) for tile in tiles]
-
-    return 0
+    return reduce(mul, corners)
 
 
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
