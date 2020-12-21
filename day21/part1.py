@@ -1,7 +1,8 @@
 import argparse
 import os.path
-from collections import defaultdict
+from functools import reduce
 from itertools import count
+from operator import and_
 
 import pytest
 
@@ -15,21 +16,29 @@ sqjhc fvjkl (contains soy)
 sqjhc mxmxvkd sbzzf (contains fish)"""
 
 
+# safe kfcds, nhms, sbzzf, trh
+
+
 class Food:
     c = count(start=1)
-    allergens_to_ingredient = defaultdict(set)
+    all_alergens = set()
+    all_ingredients = set()
 
     def __init__(self, row):
         self.food_id = next(Food.c)
         self.ingredients, self.allergens = self.parse(row)
+        self.allergen_to_ingredient = {
+            allergen: self.ingredients
+            for allergen in self.allergens
+            }
 
     def parse(self, row):
         ingr_s, _, aller_s = row.partition(' (contains ')
         ingredients = set(ingr_s.split())
         allergens = set(aller_s[:-1].split(', '))
 
-        for allergen in allergens:
-            Food.allergens_to_ingredient[allergen].update(ingredients)
+        Food.all_alergens.update(allergens)
+        Food.all_ingredients.update(ingredients)
 
         return ingredients, allergens
 
@@ -40,28 +49,37 @@ class Food:
 def compute(s: str) -> int:
     dishes = [Food(row) for row in s.splitlines()]
 
-    all_ingredients = set(ingredient for food in dishes for ingredient in food.ingredients)
+    possible_allergens = dict()
+    for ingredient in Food.all_alergens:
+        possible_allergens[ingredient] = \
+            reduce(and_, [dish.allergen_to_ingredient.get(ingredient, dish.all_ingredients) for dish in dishes])
 
-    # reduce ingredients and their allergens:
     # sort the list ascending by set length
-    reduced_dishes = sorted(list(
-        (ingred, allerg) for ingred, allerg in Food.allergens_to_ingredient.items()
-        ), key=lambda x: x[1])
+    reduced_allergens = sorted(list(
+        (name, ingred_set) for name, ingred_set in possible_allergens.items()),
+        key=lambda x: len(x[1])
+        )
 
-    safe_ingredients = []
     # reduce the columns to find the right ones
-    while reduced_dishes:
-        ingredient, allergens_set = reduced_dishes.pop(0)
-        if not allergens_set:
-            safe_ingredients.append(ingredient)
-            continue
+    resulting_allergens = dict()
+    while reduced_allergens:
+        name, prev_allergen_set = reduced_allergens.pop(0)
+        ingredient = prev_allergen_set.pop()
+        resulting_allergens[name] = ingredient
+        reduced_allergens = sorted([(name, (col_set - {ingredient})) for name, col_set in reduced_allergens],
+                                   key=lambda x: len(x[1])
+                                   )
 
-        to_remove = allergens_set.pop()
-        reduced_dishes = [(ingredient, (allergens_set - {to_remove})) for ingredient, allergens_set in reduced_dishes]
+    safe_ingredients = Food.all_ingredients - set(resulting_allergens.values())
 
-    return
+    cnt = 0
+    for dish in dishes:
+        cnt += len(dish.ingredients & safe_ingredients)
+
+    return cnt
 
 
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
