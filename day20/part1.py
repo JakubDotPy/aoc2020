@@ -127,8 +127,6 @@ class Tile:
         self.matrix = np.array(matrix)
         self.pos_in_picture = np.array([0, 0])
 
-        self.possible_edges = self._get_possible_edges()
-
     @property
     def top(self):
         return self.matrix[0]
@@ -154,18 +152,19 @@ class Tile:
     def flip_ud(self):
         self.matrix = np.flipud(self.matrix)
 
-    def _get_possible_edges(self):
-        nd_edges = [
-            self.top, self.top[::-1],
-            self.bottom, self.bottom[::-1],
-            self.left, self.left[::-1],
-            self.right, self.right[::-1],
+    @property
+    def _forward_edges(self):
+        edges = [
+            self.top,
+            self.bottom,
+            self.left,
+            self.right,
             ]
+        return set([''.join(edge) for edge in edges])
 
-        # convert to set of strings
-        edges = set([''.join(edge) for edge in nd_edges])
-
-        return edges
+    @property
+    def _backward_edges(self):
+        return set(edge[::-1] for edge in self._forward_edges)
 
     def match(self, other):
         sides = {
@@ -204,20 +203,19 @@ def compute(s: str) -> int:
 
     # generate combinations
     for i, this_tile in enumerate(tiles):
-        this_tile_edges = set(this_tile.possible_edges)
+        this_tile_edges = set(this_tile._forward_edges)
         for j, other_tile in enumerate(tiles):
             if i == j: continue  # same tile
             for edge in tuple(this_tile_edges):
-                if edge in other_tile.possible_edges:
+                if edge in other_tile._forward_edges | other_tile._backward_edges:
                     print(f'{this_tile.tile_id} {other_tile.tile_id}')
                     this_tile_edges.discard(edge)
-        if len(this_tile_edges) == 4:  # removing two times (both may be flipped) remaining edges must be 2*2
+        if len(this_tile_edges) == 2:  # removing two times (both may be flipped) remaining edges must be 2*2
             corners.append(this_tile.tile_id)
 
     return reduce(mul, corners)
 
 
-@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
