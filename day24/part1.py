@@ -2,6 +2,7 @@ import argparse
 import os.path
 import re
 from collections import Counter
+from functools import reduce
 
 import pytest
 
@@ -56,6 +57,7 @@ def compute(s: str) -> int:
     for path in paths:
         x, y = 0, 0
 
+        # reduce path using counter
         min_path = Counter(path)
         sw_ne = min_path['sw'] - min_path['ne']
         w_e = min_path['w'] - min_path['e']
@@ -77,16 +79,18 @@ def compute(s: str) -> int:
         else:
             final_moves.append(tuple(abs(nw_se) * coord for coord in dir_to_xy['nw']))
 
-        for direction in final_moves:
-            x, y = x + direction[0], y + direction[1]
-        final_pos = (x, y)
+        tuple_sum = lambda a, b: (a[0] + b[0], a[1] + b[1])
+        final_pos = reduce(tuple_sum, final_moves)
+
         if final_pos in black_tiles:
             black_tiles.discard(final_pos)  # turn white
+            continue
         black_tiles.add(final_pos)
 
     return len(black_tiles)
 
 
+@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
