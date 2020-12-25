@@ -39,24 +39,26 @@ wseweeenwnesenwwwswnew"""
 
 DIRECTIONS_RE = re.compile(r'(e|se|sw|w|nw|ne)')
 
+dir_to_xy = {
+    'e' : (1, 0),
+    'se': (0, -1),
+    'sw': (-1, -1),
+    'w' : (-1, 0),
+    'nw': (-1, 1),
+    'ne': (0, 1),
+    }
 
-def compute(s: str) -> int:
-    paths = [re.findall(DIRECTIONS_RE, row) for row in s.splitlines()]
+black_tiles = set()
+white_tiles = set()
 
-    black_tiles = set()
+to_black = set()
+to_white = set()
 
-    # q, r
-    dir_to_xy = {
-        'e' : (1, 0),
-        'se': (0, 1),
-        'sw': (-1, 1),
-        'w' : (-1, 0),
-        'nw': (0, -1),
-        'ne': (1, -1),
-        }
+tuple_sum = lambda a, b: (a[0] + b[0], a[1] + b[1])
 
+
+def load_blacks(paths):
     for path in paths:
-        x, y = 0, 0
 
         # reduce path using counter
         min_path = Counter(path)
@@ -80,7 +82,6 @@ def compute(s: str) -> int:
         else:
             final_moves.append(tuple(abs(nw_se) * coord for coord in dir_to_xy['nw']))
 
-        tuple_sum = lambda a, b: (a[0] + b[0], a[1] + b[1])
         final_pos = reduce(tuple_sum, final_moves)
 
         if final_pos in black_tiles:
@@ -88,10 +89,64 @@ def compute(s: str) -> int:
             continue
         black_tiles.add(final_pos)
 
+
+def generate_around(tile):
+    for dif in dir_to_xy.values():
+        yield tuple_sum(tile, dif)
+
+
+def black_around(tile):
+    around = generate_around(tile)
+
+    total_around = 0
+    for diff in around:
+        that_tile = tuple_sum(diff, tile)
+        if that_tile in black_tiles:
+            total_around += 1
+        else:
+            white_tiles.add(that_tile)
+
+    return total_around
+
+
+def apply_changes():
+    global black_tiles, white_tiles
+
+    black_tiles.union(to_black)
+    black_tiles.difference_update(to_white)
+
+    white_tiles.union(to_white)
+    white_tiles.difference_update(to_black)
+
+
+def compute(s: str) -> int:
+    paths = [re.findall(DIRECTIONS_RE, row) for row in s.splitlines()]
+
+    load_blacks(paths)
+
+    for day in range(1, 100 + 1):
+
+        to_white = set()
+        to_black = set()
+
+        # analyze blacks
+        for tile in black_tiles:
+            num_around = black_around(tile)
+            if num_around == 0 or num_around > 2:
+                to_white.add(tile)
+
+        for tile in white_tiles:
+            num_around = black_around(tile)
+            if num_around == 2:
+                to_black.add(tile)
+
+        apply_changes()
+
+        print(f'Day {day} tiles {len(black_tiles)}')
+
     return len(black_tiles)
 
 
-@pytest.mark.solved
 @pytest.mark.parametrize(
     ('input_s', 'expected'),
     (
